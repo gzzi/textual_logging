@@ -3,22 +3,49 @@ import logging
 from time import sleep
 import threading
 import sys,tty,os,termios
+import termios, fcntl, sys, os
 
 stop_threads = False
+
+def handle_key(c):
+    global stop_threads
+    if c == 'q':
+        stop_threads = True
+    elif c == 'h':
+        print("Help: Press 'q' to quit.")
+    if c == 't':
+        log = logging.getLogger()
+        fmt = logging.Formatter(
+'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        log.handlers[0].setFormatter(fmt)
 
 def ctrl_thread():
     global stop_threads
     while not stop_threads:
-        key = getkey()
-        if key == 'q' or key == 'esc':
-            stop_threads = True
-            break
 
-        if key == 't':
-            log = logging.getLogger()
-            fmt = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            log.handlers[0].setFormatter(fmt)
+        fd = sys.stdin.fileno()
+
+        oldterm = termios.tcgetattr(fd)
+        newattr = termios.tcgetattr(fd)
+        newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+        termios.tcsetattr(fd, termios.TCSANOW, newattr)
+
+        oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+
+        try:
+            while not stop_threads:
+                try:
+                    c = sys.stdin.read(1)
+                    if c:
+                        handle_key(c)
+                except IOError: pass
+
+                sleep(0.1)
+
+        finally:
+            termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+            fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
 
 
 def log_thread():
@@ -27,39 +54,13 @@ def log_thread():
         log.info('toto')
         sleep(0.25)
 
-
-def getkey():
-    old_settings = termios.tcgetattr(sys.stdin)
-    tty.setcbreak(sys.stdin.fileno())
-    try:
-        while True:
-            b = os.read(sys.stdin.fileno(), 3).decode()
-            if len(b) == 3:
-                k = ord(b[2])
-            else:
-                k = ord(b)
-            key_mapping = {
-                127: 'backspace',
-                10: 'return',
-                32: 'space',
-                9: 'tab',
-                27: 'esc',
-                65: 'up',
-                66: 'down',
-                67: 'right',
-                68: 'left'
-            }
-            return key_mapping.get(k, chr(k))
-    finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     ctrl_thread = threading.Thread(target=ctrl_thread)
     try:
         ctrl_thread.start()
         log_thread()
-    finally:
+    except (KeyboardInterrupt, SystemExit):
         stop_threads = True
-        ctrl_thread.join()
+        os.system('stty sane')
+    ctrl_thread.join()
