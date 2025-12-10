@@ -1,16 +1,17 @@
+import logging
 
 from textual.app import App
 from textual.widgets import Header, Footer
 from textual import work
 from .widget import Logging
 
-
 class TextualLogger(App):
     """An app with a simple log."""
 
     BINDINGS = [("d", "toggle_dark", "Toggle dark mode"),
                 ("c", "clear", "Clear"),
-                ("t", "toggle_time", "Toggle time")]
+                ("t", "toggle_time", "Toggle time"),
+                ("s", "change_severity", "Change severity")]
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
@@ -30,6 +31,19 @@ class TextualLogger(App):
             log.format = "%(levelname)s - %(message)s"
         else:
             log.format = "%(asctime)s - %(levelname)s - %(message)s"
+
+    def action_change_severity(self) -> None:
+        """An action to change the log severity."""
+        log = self.query_one(Logging)
+        if log.severity == logging.DEBUG:
+            log.severity = logging.INFO
+        elif log.severity == logging.INFO:
+            log.severity = logging.WARNING
+        elif log.severity == logging.WARNING:
+            log.severity = logging.ERROR
+        else:
+            log.severity = logging.DEBUG
+        self.notify(f"Log severity changed to {logging.getLevelName(log.severity)}")
 
     def compose(self):
         yield Header()

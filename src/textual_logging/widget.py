@@ -6,6 +6,7 @@ from textual.reactive import reactive
 class Logging(Log):
     """A Log widget that captures logging output."""
     format = reactive("%(asctime)s - %(levelname)s - %(message)s")
+    severity = reactive(logging.DEBUG)
 
     class LogAppHandler(logging.Handler):
         """A Logging handler for Textual apps."""
@@ -25,7 +26,7 @@ class Logging(Log):
         def flush(self) -> None:
             """Flush any remaining log lines."""
             if self.records:
-                lines = [self.format(record) for record in self.records]
+                lines = [self.format(record) for record in self.records if record.levelno >= self.log_widget.severity]
                 if self.tid != get_ident():
                     self.app.call_from_thread(self.log_widget.write_lines, lines)
                 else:
@@ -33,7 +34,7 @@ class Logging(Log):
                 self.previous.extend(self.records)
                 self.records.clear()
 
-        def on_format_change(self) -> None:
+        def on_config_change(self) -> None:
             """Called when the format changes."""
             self.flush()
             self.records = self.previous.copy()
@@ -60,6 +61,7 @@ class Logging(Log):
             self.backup_handler.append(h)
             self.logger.removeHandler(h)
         self.logger.addHandler(self.handler)
+        self.severity = self.logger.level
         self.set_interval(self.refresh_rate, self.handler.flush)
 
     def on_unmount(self) -> None:
@@ -76,7 +78,12 @@ class Logging(Log):
         """Called when the format changes."""
         super().clear()
         self.handler.setFormatter(logging.Formatter(format))
-        self.handler.on_format_change()
+        self.handler.on_config_change()
+
+    def watch_severity(self, severity: int) -> None:
+        """Called when the severity changes."""
+        super().clear()
+        self.handler.on_config_change()
 
     def clear(self) -> None:
         """Clear the log and previous records."""

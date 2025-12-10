@@ -12,7 +12,8 @@ Run:
 python3 -m src.textual_logging.demo
 ```
 
-it will log 10'000 messages.
+it will log 10'000 messages in each severity.
 You can press `t` to show/hide log record time.
 You can press `c` to clear the logs.
+You can press `s` to change severity.
 To exit, press `Ctrl + q`.
