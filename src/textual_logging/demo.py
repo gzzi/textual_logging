@@ -1,5 +1,6 @@
 
 from .runner import run
+from .handler import LoggingHandler
 import logging
 
 def demo():
@@ -11,7 +12,7 @@ def demo():
         logging.error(f"Logging line {i}    *")
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, handlers=[LoggingHandler()])
     logging.info("Starting demo")
     run(demo)
     logging.info("Demo finished")
