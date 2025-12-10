@@ -3,14 +3,14 @@ from textual.widgets import Log
 from threading import get_ident
 from textual.reactive import reactive
 
-class LoggingWidget(Log):
+class Logging(Log):
     """A Log widget that captures logging output."""
     format = reactive("%(asctime)s - %(levelname)s - %(message)s")
 
     class LogAppHandler(logging.Handler):
         """A Logging handler for Textual apps."""
 
-        def __init__(self, app, log_widget: 'LoggingWidget') -> None:
+        def __init__(self, app, log_widget: 'Logging') -> None:
             self.app = app
             self.log_widget = log_widget
             self.tid = get_ident()
@@ -53,7 +53,7 @@ class LoggingWidget(Log):
 
     def on_mount(self) -> None:
         """Called when the widget is mounted."""
-        self.handler = LoggingWidget.LogAppHandler(self.app, self)
+        self.handler = Logging.LogAppHandler(self.app, self)
         self.handler.setFormatter(logging.Formatter(self.format))
         self.backup_handler = []
         for h in self.logger.handlers:
@@ -67,7 +67,7 @@ class LoggingWidget(Log):
         self.handler.flush()
         handlers = self.logger.handlers[:]
         for handler in handlers:
-            if isinstance(handler, LoggingWidget.LogAppHandler):
+            if isinstance(handler, Logging.LogAppHandler):
                 self.logger.removeHandler(handler)
         for handler in self.backup_handler:
             self.logger.addHandler(handler)
