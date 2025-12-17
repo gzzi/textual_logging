@@ -1,12 +1,12 @@
 # Textual widget to display python logging log entry
 
 The goal of `textual_logging.Logging` widget is to display log from python logging library inside a textual application.
-
 The records are saved in order to change format later and to speedup display.
 
 The logger can be specified when instanciating the widget. By default the root logger is used.
 This allow to have multiple widget on the same application showing different logger.
 
+The logger can use any formatter.
 The logger must have a `textual_logging.LoggingHandler` handler.
 
 ## Example

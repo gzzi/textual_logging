@@ -10,7 +10,6 @@ from .handler import LoggingHandler
 class Logging(Log):
     """A Log widget that captures logging output."""
 
-    format = reactive("%(asctime)s - %(levelname)s - %(message)s")
     severity = reactive(logging.DEBUG)
 
     def __init__(
@@ -48,13 +47,12 @@ class Logging(Log):
 
         self.handler.on_unmount()
 
-    def watch_format(self, format: str) -> None:
-        """Called when the format changes."""
+    def config_changed(self):
+        """Call this method when logger config change."""
         if self.handler is None:
             return
 
         super().clear()
-        self.handler.setFormatter(logging.Formatter(format))
         self.handler.on_config_change()
 
     def watch_severity(self, severity: int) -> None:
