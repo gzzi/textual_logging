@@ -26,6 +26,8 @@ python3 -m textual_logging
 
 it will log 10'000 messages in each severity.
 You can press `t` to show/hide log record time.
+You can press `l` to show/hide log record level.
+You can press `m` to show/hide log record message.
 You can press `c` to clear the logs.
 You can press `s` to change severity.
 To exit, press `Ctrl + q`.

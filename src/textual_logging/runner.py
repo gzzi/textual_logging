@@ -3,9 +3,10 @@ from typing import Any, Callable
 
 from textual import work
 from textual.app import App
-from textual.reactive import reactive, Reactive
+from textual.reactive import Reactive
 from textual.widgets import Footer, Header
 
+from .formatter import DynamicFormatter, FormatPart
 from .handler import LoggingHandler
 from .widget import Logging
 
@@ -16,16 +17,36 @@ class TextualLogger(App):
     BINDINGS = [
         ("d", "toggle_dark", "Toggle dark mode"),
         ("c", "clear", "Clear"),
-        ("t", "toggle_time", "Toggle time"),
         ("s", "change_severity", "Change severity"),
     ]
 
-    format = reactive("%(asctime)s - %(levelname)s - %(message)s")
-
-    def __init__(self, logger_name: str | None = None, **kwargs: Any):
+    def __init__(
+        self,
+        logger_name: str | None = None,
+        format_parts: list[FormatPart] | None = None,
+        **kwargs: Any,
+    ):
         super().__init__(**kwargs)
-        self.logger_name: str | None = logger_name
+
+        if format_parts is None:
+            format_parts = [
+                FormatPart("%(asctime)s", "t", "Time"),
+                FormatPart("[%(levelname)s]", "l", "Level"),
+                FormatPart("%(message)s", "m", "Message"),
+            ]
+
+        for part in format_parts:
+            self.bind(
+                part.key, f"toggle_fmt('{part.key}')", description=f"Toggle {part.name}"
+            )
+
         self.job: Callable[[], Any] | None = None
+        self.formatter = DynamicFormatter(format_parts)
+        self.logger_name: str | None = logger_name
+        handler = self.get_textual_log_handler(self.logger_name)
+        if handler is None:
+            return
+        handler.setFormatter(self.formatter)
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
@@ -37,13 +58,6 @@ class TextualLogger(App):
         """An action to clear the log."""
         log = self.query_one(Logging)
         log.clear()
-
-    def action_toggle_time(self) -> None:
-        """An action to toggle time in the log format."""
-        if "%(asctime)s" in self.format:
-            self.format = "%(levelname)s - %(message)s"
-        else:
-            self.format = "%(asctime)s - %(levelname)s - %(message)s"
 
     def action_change_severity(self) -> None:
         """An action to change the log severity."""
@@ -58,21 +72,9 @@ class TextualLogger(App):
             log.severity = logging.DEBUG
         self.notify(f"Log severity changed to {logging.getLevelName(log.severity)}")
 
-    def get_textual_log_handler(self, name: str | None):
-        """Get the Textual log handler for a given logger name."""
-        logger = logging.getLogger(name)
-        for handler in logger.handlers:
-            if isinstance(handler, LoggingHandler):
-                return handler
-        return None
-
-    def watch_format(self, format: str) -> None:
+    def action_toggle_fmt(self, key: str) -> None:
         """Called when the format changes."""
-        handler = self.get_textual_log_handler(self.logger_name)
-        if handler is None:
-            return
-
-        handler.setFormatter(logging.Formatter(format))
+        self.formatter.toggle_part(key)
         log = self.query_one(Logging)
         log.config_changed()
 
@@ -84,20 +86,33 @@ class TextualLogger(App):
     def on_ready(self) -> None:
         self.process()
 
+    def get_textual_log_handler(self, name: str | None):
+        """Get the Textual log handler for a given logger name."""
+        logger = logging.getLogger(name)
+        for handler in logger.handlers:
+            if isinstance(handler, LoggingHandler):
+                return handler
+        return None
+
     @work(thread=True)
     def process(self):
         if self.job is not None:
             self.job()
 
 
-def run(func: Callable[[], Any], logger_name: str | None = None) -> Any:
+def run(
+    func: Callable[[], Any],
+    logger_name: str | None = None,
+    format_parts: list[FormatPart] | None = None,
+) -> Any:
     """Run a Textual app with logging around a function.
 
     Args:
         func (Callable): The function to run.
         logger_name (str | None): The name of the logger to capture. If None, captures the root logger.
+        format_parts (list[FormatPart] | None): The format parts to use for the logger. If None, uses the default format parts.
     """
-    app = TextualLogger(logger_name)
+    app = TextualLogger(logger_name=logger_name, format_parts=format_parts)
 
     ret = None
 
