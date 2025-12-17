@@ -13,8 +13,12 @@ def demo():
         logging.error(f"Logging line {i}    *")
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(level=logging.INFO, handlers=[LoggingHandler()])
     logging.info("Starting demo")
     run(demo)
     logging.info("Demo finished")
+
+
+if __name__ == "__main__":
+    main()
