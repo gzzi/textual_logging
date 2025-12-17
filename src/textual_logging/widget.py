@@ -16,6 +16,13 @@ class Logging(Log):
     def __init__(
         self, logger: str | None = None, refresh_rate: float = 1 / 25, *args, **kwargs
     ):
+        """
+        Initialize the Logging widget.
+
+        Args:
+            logger: The name of the logger to capture. If None, captures the root logger.
+            refresh_rate: How often to refresh the log display.
+        """
         self.refresh_rate = refresh_rate
         self.logger = logging.getLogger(logger)
         self.handler: LoggingHandler | None = None
