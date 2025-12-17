@@ -1,7 +1,8 @@
-
-from .runner import run
-from .handler import LoggingHandler
 import logging
+
+from .handler import LoggingHandler
+from .runner import run
+
 
 def demo():
     """A simple demo of the logging widget."""
@@ -10,6 +11,7 @@ def demo():
         logging.info(f"Logging line {i}  *")
         logging.warning(f"Logging line {i}   *")
         logging.error(f"Logging line {i}    *")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, handlers=[LoggingHandler()])

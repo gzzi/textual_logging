@@ -1,21 +1,31 @@
 import logging
+from typing import Any, Callable
 
-from textual.app import App
-from textual.widgets import Header, Footer
 from textual import work
+from textual.app import App
+from textual.reactive import Reactive
+from textual.widgets import Footer, Header
+
 from .widget import Logging
+
 
 class TextualLogger(App):
     """An app with a simple log."""
 
-    BINDINGS = [("d", "toggle_dark", "Toggle dark mode"),
-                ("c", "clear", "Clear"),
-                ("t", "toggle_time", "Toggle time"),
-                ("s", "change_severity", "Change severity")]
+    BINDINGS = [
+        ("d", "toggle_dark", "Toggle dark mode"),
+        ("c", "clear", "Clear"),
+        ("t", "toggle_time", "Toggle time"),
+        ("s", "change_severity", "Change severity"),
+    ]
+
+    def __init__(self, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.job: Callable[[], Any] | None = None
 
     def action_toggle_dark(self) -> None:
         """An action to toggle dark mode."""
-        self.theme = (
+        self.theme: Reactive[str] = (
             "textual-dark" if self.theme == "textual-light" else "textual-light"
         )
 
@@ -55,10 +65,11 @@ class TextualLogger(App):
 
     @work(thread=True)
     def process(self):
-        self.job()
+        if self.job is not None:
+            self.job()
 
 
-def run(func):
+def run(func: Callable[[], Any]) -> Any:
     """Run a Textual app with logging around a function.
 
     Args:
@@ -67,6 +78,7 @@ def run(func):
     app = TextualLogger()
 
     ret = None
+
     def wrapper():
         nonlocal ret
         ret = func()

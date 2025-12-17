@@ -1,14 +1,21 @@
 import logging
-from textual.widgets import Log
+from typing import Self
+
 from textual.reactive import reactive
+from textual.widgets import Log
+
 from .handler import LoggingHandler
+
 
 class Logging(Log):
     """A Log widget that captures logging output."""
+
     format = reactive("%(asctime)s - %(levelname)s - %(message)s")
     severity = reactive(logging.DEBUG)
 
-    def __init__(self, logger=None, refresh_rate = 1/25, *args, **kwargs):
+    def __init__(
+        self, logger: str | None = None, refresh_rate: float = 1 / 25, *args, **kwargs
+    ):
         self.refresh_rate = refresh_rate
         self.logger = logging.getLogger(logger)
         self.handler: LoggingHandler | None = None
@@ -51,10 +58,11 @@ class Logging(Log):
         super().clear()
         self.handler.on_config_change()
 
-    def clear(self) -> None:
+    def clear(self) -> Self:
         """Clear the log and previous records."""
         super().clear()
 
-        if self.handler is None:
-            return
-        self.handler.clear()
+        if self.handler is not None:
+            self.handler.clear()
+
+        return self
