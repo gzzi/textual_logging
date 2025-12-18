@@ -17,6 +17,10 @@ class DynamicFormatter:
         self._fmt = fmt
         self.refresh_format()
 
+    def get_parts(self) -> list[FormatPart]:
+        """Get the format parts."""
+        return self._fmt
+
     def toggle_part(self, key: str) -> None:
         """Toggle a part of the format on or off."""
         for part in self._fmt:
