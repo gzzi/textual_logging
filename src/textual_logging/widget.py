@@ -66,7 +66,7 @@ class Logging(Log):
         super().clear()
         self.handler.on_config_change()
 
-    def clear(self) -> Self:
+    def clear(self) -> "Self":
         """Clear the log and previous records."""
         super().clear()
 

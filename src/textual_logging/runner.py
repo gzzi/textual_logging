@@ -11,7 +11,7 @@ from .handler import LoggingHandler
 from .widget import Logging
 
 
-class TextualLogger(App):
+class TextualLogger(App[None]):
     """An app with a simple log."""
 
     BINDINGS = [
