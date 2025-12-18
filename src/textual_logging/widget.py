@@ -1,10 +1,13 @@
 import logging
-from typing import Self
+from typing import TYPE_CHECKING
 
 from textual.reactive import reactive
 from textual.widgets import Log
 
 from .handler import LoggingHandler
+
+if TYPE_CHECKING:
+    from typing import Self
 
 
 class Logging(Log):
