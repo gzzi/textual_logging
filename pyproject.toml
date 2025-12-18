@@ -44,8 +44,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/textual_logging"
-Repository = "https://github.com/yourusername/textual_logging"
+Homepage = "https://github.com/gzzi/textual_logging"
+Repository = "https://github.com/gzzi/textual_logging"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/textual_logging"]
