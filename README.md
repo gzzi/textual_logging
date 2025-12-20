@@ -9,6 +9,10 @@ This allow to have multiple widget on the same application showing different log
 The logger can use any formatter.
 The logger must have a `textual_logging.LoggingHandler` handler.
 
+## Install
+
+The packet is on pypi. To install it use `pip install textual_logging`.
+
 ## Example
 
 The file [runner.py](./src/textual_logging/runner.py) contain a example application `textual_logging.TextualLogger` that use the widget.
