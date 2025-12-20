@@ -4,9 +4,10 @@ from threading import get_ident
 from typing import TYPE_CHECKING
 
 from textual.app import App
+from textual.widgets import Log, RichLog
 
 if TYPE_CHECKING:
-    from .widget import Logging
+    from .widget import Logging, RichLogging
 
 
 class LoggingHandler(logging.Handler):
@@ -18,7 +19,7 @@ class LoggingHandler(logging.Handler):
         self.previous: list[logging.LogRecord] = []
         super().__init__()
 
-    def on_mount(self, app: App, log_widget: "Logging") -> None:
+    def on_mount(self, app: App, log_widget: "Logging | RichLogging") -> None:
         self.app = app
         self.log_widget = log_widget
         self.tid = get_ident()
@@ -43,12 +44,23 @@ class LoggingHandler(logging.Handler):
                 for record in self.records
                 if record.levelno >= self.log_widget.severity
             ]
+            self.write_lines(lines)
+            self.previous.extend(self.records)
+            self.records.clear()
+
+    def write_lines(self, lines: list[str]) -> None:
+        """Write lines to the log widget."""
+        if isinstance(self.log_widget, Log):
             if self.tid != get_ident() and self.app is not None:
                 self.app.call_from_thread(self.log_widget.write_lines, lines)
             else:
                 self.log_widget.write_lines(lines)
-            self.previous.extend(self.records)
-            self.records.clear()
+        if isinstance(self.log_widget, RichLog):
+            content = "\n".join(lines)
+            if self.tid != get_ident() and self.app is not None:
+                self.app.call_from_thread(self.log_widget.write, content)
+            else:
+                self.log_widget.write(content)
 
     def on_config_change(self) -> None:
         """Called when the format changes."""
