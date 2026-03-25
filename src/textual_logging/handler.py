@@ -57,10 +57,15 @@ class LoggingHandler(logging.Handler):
                 self.log_widget.write_lines(lines)
         if isinstance(self.log_widget, RichLog):
             content = "\n".join(lines)
+            scroll_end = self.log_widget.is_vertical_scroll_end
             if self.tid != get_ident() and self.app is not None:
-                self.app.call_from_thread(self.log_widget.write, content)
+                self.app.call_from_thread(
+                    self.log_widget.write,
+                    content,
+                    scroll_end=scroll_end,
+                )
             else:
-                self.log_widget.write(content)
+                self.log_widget.write(content, scroll_end=scroll_end)
 
     def on_config_change(self) -> None:
         """Called when the format changes."""
